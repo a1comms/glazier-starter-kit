@@ -1,0 +1,86 @@
+#!ipxe
+
+# Some menu defaults
+set menu-timeout 60000
+set submenu-timeout ${menu-timeout}
+isset ${menu-default} || set menu-default exit
+
+
+###################### MAIN MENU ####################################
+
+:start
+menu iPXE boot menu for A1 Comms Ltd
+item --gap --               ---------------------  Glazier Images with MGMT --------------------------
+item --key s windows-stable Run Glazier with windows-stable (Windows 11 Pro) configuration
+item --key d win10-stable   Run Glazier with win10-stable (Windows 10 Pro) configuration
+item --gap --               -----------------------  Glazier Images (Blank) --------------------------
+item --key b windows-blank  Run Glazier with windows-blank (Windows 11 Pro) configuration
+item --key n win10-blank    Run Glazier with win10-blank (Windows 10 Pro) configuration
+item --gap --               ------------------------- Advanced options -------------------------------
+item shell                  Drop to iPXE shell
+item reboot                 Reboot computer
+item
+item --key x exit           Exit iPXE and continue BIOS boot
+choose --timeout ${menu-timeout} --default ${menu-default} selected || goto cancel
+set menu-timeout 0
+goto ${selected}
+
+:cancel
+echo You cancelled the menu, dropping you to a shell
+
+:shell
+echo Type 'exit' to get the back to the menu
+shell
+set menu-timeout 0
+goto start
+
+:failed
+echo Booting failed, dropping to shell
+goto shell
+
+:reboot
+reboot
+
+:exit
+exit
+
+############ MAIN MENU ITEMS ############
+
+:windows-stable
+echo Booting WinPE for Glazier with windows-stable configuration
+kernel http://storage.googleapis.com/CHANGE_ME/wimboot.x86_64.efi
+initrd http://storage.googleapis.com/CHANGE_ME/Boot/BCD                      BCD
+initrd http://storage.googleapis.com/CHANGE_ME/Boot/boot.sdi                 boot.sdi
+initrd http://storage.googleapis.com/CHANGE_ME/sources/boot.wim              boot.wim
+boot || goto failed
+goto start
+
+:windows-blank
+echo Booting WinPE for Glazier with windows-blank configuration
+kernel http://storage.googleapis.com/CHANGE_ME/wimboot.x86_64.efi
+initrd http://storage.googleapis.com/CHANGE_ME/blank/autobuild.ps1             autobuild.ps1
+initrd http://storage.googleapis.com/CHANGE_ME/Boot/BCD                      BCD
+initrd http://storage.googleapis.com/CHANGE_ME/Boot/boot.sdi                 boot.sdi
+initrd http://storage.googleapis.com/CHANGE_ME/sources/boot.wim              boot.wim
+boot || goto failed
+goto start
+
+:win10-stable
+echo Booting WinPE for Glazier with win10-stable configuration
+kernel http://storage.googleapis.com/CHANGE_ME/wimboot.x86_64.efi
+initrd http://storage.googleapis.com/CHANGE_ME/win10-stable/autobuild.ps1      autobuild.ps1
+initrd http://storage.googleapis.com/CHANGE_ME/Boot/BCD                      BCD
+initrd http://storage.googleapis.com/CHANGE_ME/Boot/boot.sdi                 boot.sdi
+initrd http://storage.googleapis.com/CHANGE_ME/sources/boot.wim              boot.wim
+boot || goto failed
+goto start
+
+:win10-blank
+echo Booting WinPE for Glazier with win10-blank configuration
+kernel http://storage.googleapis.com/CHANGE_ME/wimboot.x86_64.efi
+initrd http://storage.googleapis.com/CHANGE_ME/win10-blank/autobuild.ps1       autobuild.ps1
+initrd http://storage.googleapis.com/CHANGE_ME/Boot/BCD                      BCD
+initrd http://storage.googleapis.com/CHANGE_ME/Boot/boot.sdi                 boot.sdi
+initrd http://storage.googleapis.com/CHANGE_ME/sources/boot.wim              boot.wim
+boot || goto failed
+goto start
