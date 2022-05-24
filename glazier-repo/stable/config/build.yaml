@@ -1,23 +1,83 @@
 templates:
-  test:
-     PSCommand: ['Get-Date', [0, 1]]
+  osdcloud:
+    PSCommand: ['Start-OSDCloud -Firmware -SkipAutopilot -SkipODT -ZTI -OSVersion "Windows 11" -OSBuild "21H2" -OSEdition "Pro" -OSLanguage "en-gb" -OSLicense "Retail"']
 
 controls:
-  - pin: ''
-    template:
-      - test
-  - pin: ''
-    choice:
-      name: test_thing
-      type: toggle
-      prompt: "test toggle"
-      options: [
-        {label: 'False', value: False, tip: ''},
-        {label: 'True', value: True, tip: ''},
-      ]
-  - pin: ''
-    ShowChooser: []
-  - pin: ''
-    template:
-      - test
-    
+- SetTimer: ['winpe_start']
+
+#################################################################################################
+# Install Windows                                                                               #
+#################################################################################################
+
+- template:
+  - 'osdcloud'
+
+#################################################################################################
+# Install bootloader                                                                            #
+#################################################################################################
+
+- PSCommand: ['& X:\Windows\System32\bcdboot.exe C:\Windows /c /v']
+
+#################################################################################################
+# Prepare MGMT & unattend config                                                                #
+#################################################################################################
+
+- pull:
+  - ['unattend.xml', 'C:\Windows\Panther\Invoke-OSDSpecialize.xml']
+
+- MkDir: ['C:\MGMT']
+
+- pull:
+  - ['mgmt-installer-amd64.exe', 'C:\MGMT\mgmt-installer-amd64.exe']
+
+#################################################################################################
+# Copy files from WinPE to the host for later use                                               #
+#################################################################################################
+
+- PSCommand: ['mkdir C:\glazier_cache']
+
+- CopyDir: ['X:\Python', 'C:\Python', true]
+- CopyDir: ['X:\glazier', 'C:\glazier', true]
+- CopyDir: ['X:\glazier-resources', 'C:\glazier-resources', true]
+- pull:
+  - ['autobuild.ps1', 'C:\windows\system32\autobuild.ps1']
+
+- BuildInfoDump: []
+
+- SetTimer: ['winpe_stop']
+
+#################################################################################################
+# Exit WinPE                                                                                    #
+#################################################################################################
+- ExitWinPE: []
+
+#################################################################################################
+# Enter Host                                                                                    #
+#################################################################################################
+- SetTimer: ['host_start']
+
+- BuildInfoSave: []
+
+# Launch Glazier with every subsequent reboot
+- MultiRegAdd: [
+    ['HKCU', 'Software\Microsoft\Windows NT\CurrentVersion\Winlogon', 'Shell', 'powershell.exe -NoProfile -WindowStyle Maximized -NoExit -NoLogo -ExecutionPolicy Bypass -Command & C:\windows\system32\autobuild.ps1', 'REG_SZ'],
+    ['HKCU', 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', 'NoLogoff', 1, 'REG_DWORD'],
+    ['HKCU', 'Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableChangePassword', 1, 'REG_DWORD'],
+    ['HKCU', 'Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableLockWorkstation', 1, 'REG_DWORD'],
+  ]
+
+#################################################################################################
+# Install Software                                                                              #
+#################################################################################################
+
+- PSCommand: ['& C:\MGMT\mgmt-installer-amd64.exe']
+
+#################################################################################################
+# Complete the install                                                                          #
+#################################################################################################
+
+- MultiRegAdd: [
+    ['HKLM', 'Software\Microsoft\Windows NT\CurrentVersion\Winlogon', 'AutoAdminLogon', '0', 'REG_SZ']
+  ]
+
+- Reboot: [10, 'Rebooting to finish host configuration']

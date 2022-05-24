@@ -1,3 +1,8 @@
 os_codes:
-  windows10-stable:
-    code: win10
+  windows-stable:
+    code: win
+supported_models:
+  tier1:
+  - "Latitude 5520"
+  tier2:
+  - "Latitude 5580"

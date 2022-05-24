@@ -1,2 +1,5 @@
 tools/autobuild.json
 *.iso
+/glazier/*
+/glazier-repo/*/config/mgmt-installer-amd64.exe
+/glazier-repo/*/config/unattend.xml
