@@ -1,9 +1,11 @@
 Param(
-    [string]$config_server = "",
-    [string]$make_usb="",
-    [string]$driver_path = "C:\drivers",
-    [bool]$export_drivers = $false
+    [string]$config_server = ""
 )
+
+# Disable IE Advanced Security, as it breaks OSDCloud calls:
+$IEESC = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
+Set-ItemProperty -Path $IEESC -Name IsInstalled -Value 0
+Stop-Process -Name Explorer
 
 # $scriptPath is the absolute path where this script is executing from
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
@@ -43,17 +45,12 @@ if (!(isURIWeb($config_server))) {
     exit(1)
 }
 
-if($export_drivers) {
-    New-Item -ItemType Directory -Force -Path $driver_path	
-    dism /online /export-driver /destination:$driver_path
-}
-
 # $pyVersion is the Python version that will be downloaded
-$pyVersion = "3.9.5"
+$pyVersion = "3.10.4"
 # $pythonSavePath is place where the Python installer will be downloaded on disk
 $pythonSavePath = "~\Downloads\python-$pyVersion-amd64.exe"
 # $pythonInstallHash is the hash used to verify the Python installer download
-$pythonInstallHash = "53a354a15baed952ea9519a7f4d87c3f"
+$pythonInstallHash = "53fea6cfcce86fb87253364990f22109"
 # $pyEXEUrl is the url where the Python installer will be obtained
 $pyEXEUrl = "https://www.python.org/ftp/python/$pyVersion/python-$pyVersion-amd64.exe"
 
@@ -70,19 +67,19 @@ choco install windows-adk-winpe -y
 Import-Module OSD
 
 # Create OSDCloud template if not created yet.
-if ((Get-OSDCloud.template) -eq "C:\ProgramData\OSDCloud") { 
-    Write-Host "'NEW-OSDCloud.template -WinRE -Verbose' already completed"
+if ((Get-OSDCloudTemplate) -eq "C:\ProgramData\OSDCloud") { 
+    Write-Host "'New-OSDCloudTemplate -Verbose' already completed"
 } else {
-    Write-Host "Running 'NEW-OSDCloud.template -WinRE -Verbose'"
-    New-OSDCloud.template -WinRE -Verbose
+    Write-Host "Running 'New-OSDCloudTemplate -Verbose'"
+    New-OSDCloudTemplate -Verbose
 }
 
 # Create OSDCloud workspace if not created yet.
-if ((Get-OSDCloud.workspace) -eq "C:\OSDCloud") {
-    Write-Host "'New-OSDCloud.workspace -WorkspacePath C:\OSDCloud' already completed"
+if ((Get-OSDCloudWorkspace) -eq "C:\OSDCloud") {
+    Write-Host "'New-OSDCloudWorkspace -WorkspacePath C:\OSDCloud' already completed"
 } else {
-    Write-Host "Running 'New-OSDCloud.workspace -WorkspacePath C:\OSDCloud'"
-    New-OSDCloud.workspace -WorkspacePath C:\OSDCloud
+    Write-Host "Running 'New-OSDCloudWorkspace -WorkspacePath C:\OSDCloud'"
+    New-OSDCloudWorkspace -WorkspacePath C:\OSDCloud
 }
 
 # Download Python if needed
@@ -100,11 +97,23 @@ while ((Get-FileHash ($pythonSavePath) -Algorithm MD5).Hash -ne $pythonInstallHa
     curl $pyEXEUrl -UseBasicParsing -OutFile $pythonSavePath
 }
 
-# Edit-OSDCloud is needed to make StartWinRE-Wifi work
-Edit-OSDCloud.winpe -DriverPath $driver_path
+# Install OSDCloud driver packs...
+Write-Host "Installing OSDCloud driver packs..."
+Write-Host "Running 'Edit-OSDCloudWinPE -CloudDriver Dell,IntelNet,USB'"
+Edit-OSDCloudWinPE -CloudDriver Dell,IntelNet,USB
+
+# Set the Wallpaper in WinPE
+$wallpaperPath = "$scriptPath\wallpaper.jpg"
+Write-Host "Checking if wallpaper is available for WinPE at $wallpaperPath..."
+if ((Test-Path $wallpaperPath) -eq $True) {
+    Write-Host "Configuring wallpaper for WinPE"
+    Edit-OSDCloudWinPE -Wallpaper $wallpaperPath
+} else {
+    Write-Host "Wallpaper not available."
+}
 
 # Mount our WIM. Borrowed from https://github.com/OSDeploy/OSD/blob/master/Public/OSDCloud/Edit-OSDCloud.winpe.ps1
-$WorkspacePath = Get-OSDCloud.workspace -ErrorAction Stop
+$WorkspacePath = Get-OSDCloudWorkspace -ErrorAction Stop
 $MountMyWindowsImage = Mount-MyWindowsImage -ImagePath "$WorkspacePath\Media\Sources\boot.wim"
 $MountPath = $MountMyWindowsImage.Path
 
@@ -144,27 +153,43 @@ mkdir "$MountPath\glazier-resources"
 robocopy "$scriptPath\..\glazier-resources\" "$MountPath\glazier-resources\" *.* /E /PURGE
 
 Write-Host "Copying autobuild.ps1 to WIM"
-# Copy autobuild.ps1 into WIM
 robocopy "$scriptPath\" "$MountPath\Windows\System32\" autobuild.ps1 /PURGE
+
+Write-Host "Copying shutdown.exe to WIM"
+robocopy "C:\Windows\system32\" "$MountPath\Windows\System32\" shutdown.exe /PURGE
+
+Write-Host "Downloading https://curl.se/ca/cacert.pem to WIM"
+curl https://curl.se/ca/cacert.pem -o "$MountPath\glazier-resources\ca-certs.crt"
+
+$osd_version = (Get-InstalledModule -Name OSD).Version.ToString()
+Write-Host "Detected OSDCloud version $osd_version, writing to startup script..."
 
 # Write out Startnet.cmd, which will run when WinPE boots. This will launch the CLI Wifi menu and then autobuild.ps1.
 $Startnet = @"
+@ECHO OFF
+ECHO Glazier WinPE with OSDCloud {0}
+ECHO Initialize WinPE
 wpeinit
-start powershell
-start /wait PowerShell -NoL -C Start-WinREWiFi
-powershell -NoProfile -NoLogo -Command Set-ExecutionPolicy -ExecutionPolicy Bypass -Force
-powershell -NoProfile -NoLogo -WindowStyle Maximized -NoExit -File "X:\Windows\System32\autobuild.ps1" -config_server {0}
-"@ -f $config_server
+cd \
+ECHO Initialize Hardware
+start /wait PowerShell -Nol -W Mi -C Start-Sleep -Seconds 10
+ECHO Initialize Network Connection (Minimized)
+start /wait PowerShell -Nol -W Mi -C Start-Sleep -Seconds 10
+ECHO Updating OSD PowerShell Module (Minimized)
+start /wait PowerShell -NoL -W Mi -C "& {if (Test-WebConnection) {Install-Module OSD -Force -Verbose}}"
+ECHO Initialize PowerShell (Minimized)
+start PowerShell -Nol -W Mi
+@ECHO ON
+@ECHO OFF
+ECHO Start PowerShell
+start PowerShell -NoProfile -NoLogo -WindowStyle Maximized -NoExit -File "X:\Windows\System32\autobuild.ps1" -config_server {1}
+"@ -f $osd_version, $config_server
+
 Write-Host "Writing Startnet.cmd"
-# Save our changes to Startnet.cmd
 $Startnet | Out-File -FilePath "$MountPath\Windows\System32\Startnet.cmd" -Force -Encoding ascii
+
 Write-Host "Saving WIM"
-# Dismount and save WIM
-#Save-WindowsImage -Path $MountPath
 $MountMyWindowsImage | Dismount-MyWindowsImage -Save
+
 Write-Host "Creating ISO"
-New-OSDCloud.iso
-if ($make_usb -eq 'true') {
-    Write-Host "Creating USB"
-    New-OSDCloud.usb
-}
+New-OSDCloudISO

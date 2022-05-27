@@ -26,9 +26,13 @@ controls:
   - ['unattend.xml', 'C:\Windows\Panther\Invoke-OSDSpecialize.xml']
 
 - MkDir: ['C:\MGMT']
+- MkDir: ['C:\MGMT\Temp']
+- MkDir: ['C:\MGMT\Temp\odt']
 
 - pull:
-  - ['mgmt-installer-amd64.exe', 'C:\MGMT\mgmt-installer-amd64.exe']
+  - ['MGMT/mgmt-installer-amd64.exe', 'C:\MGMT\mgmt-installer-amd64.exe']
+  - ['Office365/officedeploymenttool_15128-20224.exe', 'C:\MGMT\Temp\odt_installer.exe']
+  - ['Office365/config.xml', 'C:\MGMT\Temp\odt\a1-config.xml']
 
 #################################################################################################
 # Copy files from WinPE to the host for later use                                               #
@@ -69,6 +73,10 @@ controls:
 #################################################################################################
 # Install Software                                                                              #
 #################################################################################################
+
+- PSCommand: ['& C:\MGMT\Temp\odt_installer.exe /extract:C:\MGMT\Temp\odt /quiet /norestart']
+
+- PSCommand: ['& C:\MGMT\Temp\odt\setup.exe /configure C:\MGMT\Temp\odt\a1-config.xml']
 
 - PSCommand: ['& C:\MGMT\mgmt-installer-amd64.exe']
 
