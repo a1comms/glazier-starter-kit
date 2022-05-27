@@ -1,11 +1,15 @@
 Param(
     [string]$config_server = ""
+    [string]$storage_upload_path = ""
 )
 
 # Disable IE Advanced Security, as it breaks OSDCloud calls:
 $IEESC = "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
 Set-ItemProperty -Path $IEESC -Name IsInstalled -Value 0
 Stop-Process -Name Explorer
+
+# Enable IE Explorer from Cloud Build
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Internet Explorer\Main" -Name "DisableFirstRunCustomize" -Value 2
 
 # $scriptPath is the absolute path where this script is executing from
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
@@ -176,7 +180,7 @@ start /wait PowerShell -Nol -W Mi -C Start-Sleep -Seconds 10
 ECHO Initialize Network Connection (Minimized)
 start /wait PowerShell -Nol -W Mi -C Start-Sleep -Seconds 10
 ECHO Updating OSD PowerShell Module (Minimized)
-start /wait PowerShell -NoL -W Mi -C "& {if (Test-WebConnection) {Install-Module OSD -Force -Verbose}}"
+start /wait PowerShell -NoL -W Mi -C "& {{if (Test-WebConnection) {{Install-Module OSD -Force -Verbose}}}}"
 ECHO Initialize PowerShell (Minimized)
 start PowerShell -Nol -W Mi
 @ECHO ON
@@ -193,3 +197,8 @@ $MountMyWindowsImage | Dismount-MyWindowsImage -Save
 
 Write-Host "Creating ISO"
 New-OSDCloudISO
+
+if ($storage_upload_path -ne "") {
+    Write-Host "Writing ISO to Cloud Storage at $storage_upload_path"
+    gsutil -m cp "C:\OSDCloud\OSDCloud.iso" "$storage_upload_path"
+}
