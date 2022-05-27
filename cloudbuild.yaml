@@ -15,6 +15,6 @@ steps:
           '--image', '$_IMAGE',
           '--machineType', '$_MACHINETYPE',
           '--diskSizeGb', '150',
-          '--serviceAccount', '$_SERVICEACCOUNT'
+          '--serviceAccount', '$_SERVICEACCOUNT',
           '--command', 'powershell.exe -File tools/bootstrap_winpe.ps1 -config_server $_CONFIG_SERVER' ]
 timeout: 3600s
