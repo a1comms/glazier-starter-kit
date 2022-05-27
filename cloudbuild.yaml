@@ -1,0 +1,20 @@
+substitutions:
+  _NETWORK: 'default'
+  _SUBNETWORK: 'default'
+  _REGION: 'europe-west1'
+  _ZONE: 'europe-west1-d'
+  _IMAGE: 'windows-cloud/global/images/windows-server-2022-dc-core-v20220513'
+  _MACHINETYPE: 'e2-standard-4'
+  _SERVICEACCOUNT: ''
+steps:
+- name: 'gcr.io/$PROJECT_ID/windows-builder'
+  args: [ '--network', '$_NETWORK',
+          '--subnetwork', '$_SUBNETWORK',
+          '--region', '$_REGION',
+          '--zone', '$_ZONE',
+          '--image', '$_IMAGE',
+          '--machineType', '$_MACHINETYPE',
+          '--diskSizeGb', '150',
+          '--serviceAccount', '$_SERVICEACCOUNT'
+          '--command', 'powershell.exe -File tools/bootstrap_winpe.ps1 -config_server $_CONFIG_SERVER' ]
+timeout: 3600s
