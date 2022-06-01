@@ -17,7 +17,7 @@ $py_args = @(
   "X:\glazier\glazier\autobuild.py",
   "--config_server=$config_server",
   '--resource_path=X:\glazier-resources',
-  '--glazier_spec_os=windows-blank',
+  '--glazier_spec_os=windows-stable',
   '--preserve_tasks=true'
 )
 
