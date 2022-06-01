@@ -199,6 +199,25 @@ Write-Host "Creating ISO"
 New-OSDCloudISO
 
 if ($storage_upload_path -ne "") {
-    Write-Host "Writing ISO to Cloud Storage at $storage_upload_path"
-    gsutil -m cp "C:\OSDCloud\OSDCloud.iso" "$storage_upload_path"
+    Write-Host "Writing ISO to Cloud Storage at $storage_upload_path.iso"
+    gsutil -m cp "C:\OSDCloud\OSDCloud.iso" "$storage_upload_path.iso"
+
+    $configs = @("windows-blank","win10-stable","win10-blank")
+    foreach ($cnf in $configs) {
+        Write-Host "Re-Mounting WinPE Image"
+        $MountMyWindowsImage = Mount-MyWindowsImage -ImagePath "$WorkspacePath\Media\Sources\boot.wim"
+        $MountPath = $MountMyWindowsImage.Path
+
+        Write-Host "Copying autobuild.ps1 to WIM"
+        robocopy "$scriptPath\..\glazier-repo\$cnf\" "$MountPath\Windows\System32\" autobuild.ps1 /PURGE
+
+        Write-Host "Saving WIM"
+        $MountMyWindowsImage | Dismount-MyWindowsImage -Save
+
+        Write-Host "Creating ISO"
+        New-OSDCloudISO
+
+        Write-Host "Writing ISO to Cloud Storage at $storage_upload_path-$cnf.iso"
+        gsutil -m cp "C:\OSDCloud\OSDCloud.iso" "$storage_upload_path-$cnf.iso"
+    }
 }
