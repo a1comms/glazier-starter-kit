@@ -9,6 +9,9 @@ controls:
 # Install Windows                                                                               #
 #################################################################################################
 
+- PSCommand: ['Uninstall-Module -Name OSD -Confirm:$False -Force -Verbose']
+- PSCommand: ['Install-Module -Name OSD -RequiredVersion 22.6.22.3 -Confirm:$False -Force -Verbose']
+
 - template:
   - 'osdcloud'
 
