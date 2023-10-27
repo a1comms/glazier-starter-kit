@@ -1,5 +1,9 @@
 versions:
   windows-stable: 'stable'
+  windows-stable-enterprise: 'stable-enterprise'
+  windows-yappl: 'yappl'
   windows-blank: 'blank'
   win10-stable: 'win10-stable'
+  win10-stable-enterprise: 'win10-stable-enterprise'
   win10-blank: 'win10-blank'
+  win11-22h2: 'win11-22h2'

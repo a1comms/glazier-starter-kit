@@ -202,7 +202,7 @@ if ($storage_upload_path -ne "") {
     Write-Host "Writing ISO to Cloud Storage at $storage_upload_path.iso"
     gsutil -m cp "C:\OSDCloud\OSDCloud.iso" "$storage_upload_path.iso"
 
-    $configs = @("blank","win10-stable","win10-blank")
+    $configs = @("blank","win10-stable","win10-blank","yappl")
     foreach ($cnf in $configs) {
         Write-Host "Re-Mounting WinPE Image"
         $MountMyWindowsImage = Mount-MyWindowsImage -ImagePath "$WorkspacePath\Media\Sources\boot.wim"

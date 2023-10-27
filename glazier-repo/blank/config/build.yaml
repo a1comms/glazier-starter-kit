@@ -1,6 +1,6 @@
 templates:
   osdcloud:
-    PSCommand: ['Start-OSDCloud -Firmware -SkipAutopilot -SkipODT -ZTI -OSVersion "Windows 11" -OSBuild "21H2" -OSEdition "Pro" -OSLanguage "en-gb" -OSLicense "Retail"']
+    PSCommand: ['Start-OSDCloud -Firmware -SkipAutopilot -SkipODT -ZTI -OSVersion "Windows 11" -OSBuild "22H2" -OSEdition "Pro" -OSLanguage "en-gb" -OSLicense "Retail"']
 
 controls:
 - SetTimer: ['winpe_start']
@@ -8,9 +8,6 @@ controls:
 #################################################################################################
 # Install Windows                                                                               #
 #################################################################################################
-
-- PSCommand: ['Uninstall-Module -Name OSD -Confirm:$False -Force -Verbose']
-- PSCommand: ['Install-Module -Name OSD -RequiredVersion 22.6.22.3 -Confirm:$False -Force -Verbose']
 
 - template:
   - 'osdcloud'

@@ -1,6 +1,8 @@
 tools/autobuild.json
 *.iso
 /glazier/*
+/glazier-repo/Boot
 /glazier-repo/*/config/*/*.exe
+/glazier-repo/*/config/*/*.msu
 /glazier-repo/*/config/unattend.xml
 /glazier-repo/sync.sh

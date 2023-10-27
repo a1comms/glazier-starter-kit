@@ -1,6 +1,6 @@
 templates:
   osdcloud:
-    PSCommand: ['Start-OSDCloud -Firmware -SkipAutopilot -SkipODT -ZTI -OSVersion "Windows 10" -OSBuild "21H2" -OSEdition "Pro" -OSLanguage "en-gb" -OSLicense "Retail"']
+    PSCommand: ['Start-OSDCloud -Firmware -SkipAutopilot -SkipODT -ZTI -OSVersion "Windows 10" -OSBuild "21H2" -OSEdition "Enterprise" -OSLanguage "en-gb" -OSLicense "Volume"']
 
 controls:
 - SetTimer: ['winpe_start']

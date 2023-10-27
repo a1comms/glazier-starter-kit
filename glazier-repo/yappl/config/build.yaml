@@ -1,6 +1,6 @@
 templates:
   osdcloud:
-    PSCommand: ['Start-OSDCloud -Firmware -SkipAutopilot -SkipODT -ZTI -OSVersion "Windows 10" -OSBuild "21H2" -OSEdition "Pro" -OSLanguage "en-gb" -OSLicense "Retail"']
+    PSCommand: ['Start-OSDCloud -Firmware -SkipAutopilot -SkipODT -ZTI -OSVersion "Windows 11" -OSBuild "22H2" -OSEdition "Pro" -OSLanguage "en-gb" -OSLicense "Retail"']
 
 controls:
 - SetTimer: ['winpe_start']
@@ -40,11 +40,16 @@ controls:
   - ['Office365/officedeploymenttool_15128-20224.exe', 'C:\MGMT\Temp\odt_installer.exe']
   - ['Office365/config.xml', 'C:\MGMT\Temp\odt\a1-config.xml']
 
+
 #################################################################################################
 # Copy files from WinPE to the host for later use                                               #
 #################################################################################################
 
 - PSCommand: ['mkdir C:\glazier_cache']
+
+# Install the September 2023 cumulative update for the AlwaysOn VPN fix
+- UpdateMSU:
+  - ['MSU/windows11.0-kb5030310-x64_2b759815a3b7626cc8f508753553172aa444d454.msu', 'C:\glazier_cache\kb5030310.msu', '87fd6e6be69f7ae93b42d547e2f2f5c4accb16f41e26958f23e5216db581ebb9']
 
 - CopyDir: ['X:\Python', 'C:\Python', true]
 - CopyDir: ['X:\glazier', 'C:\glazier', true]
@@ -79,6 +84,24 @@ controls:
 #################################################################################################
 # Install Software                                                                              #
 #################################################################################################
+
+- MultiPSCommand:
+  - ['Set-ExecutionPolicy Unrestricted -Force']
+  - ['Set-PSRepository -Name PSGallery -InstallationPolicy Trusted']
+  - ['Install-Module PSWindowsUpdate -Confirm:$false']
+  - ['Start-Service -name wuauserv']
+
+- Sleep: [60, 'Waiting for Windows Update to initialise...']
+
+- MultiPSCommand:
+  - ['Get-WindowsUpdate -MicrosoftUpdate -Verbose']
+  - ['Install-WindowsUpdate -AcceptAll -Install -MicrosoftUpdate -AutoReboot -Verbose']
+
+- Sleep: [15, 'Waiting for Windows Update reboot if required...']
+
+- MultiPSCommand:
+  - ['Set-PSRepository -Name PSGallery -InstallationPolicy Untrusted']
+  - ['Set-ExecutionPolicy Restricted -Force']
 
 - PSCommand: ['& C:\MGMT\Temp\odt_installer.exe /extract:C:\MGMT\Temp\odt /quiet /norestart']
 
