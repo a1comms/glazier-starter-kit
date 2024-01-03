@@ -3,7 +3,7 @@ substitutions:
   _SUBNETWORK: 'default'
   _REGION: 'europe-west1'
   _ZONE: 'europe-west1-d'
-  _IMAGE: 'windows-cloud/global/images/windows-server-2022-dc-v20231011'
+  _IMAGE: 'windows-cloud/global/images/windows-server-2022-dc-v20231213'
   _MACHINETYPE: 'e2-standard-4'
   _SERVICEACCOUNT: ''
   _STORAGE_UPLOAD_PATH: ''
