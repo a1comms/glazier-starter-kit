@@ -118,6 +118,7 @@ if ((Test-Path $wallpaperPath) -eq $True) {
 }
 
 # Mount our WIM. Borrowed from https://github.com/OSDeploy/OSD/blob/master/Public/OSDCloud/Edit-OSDCloud.winpe.ps1
+Write-Host "Preparing WIM for Glazier, mount..."
 $WorkspacePath = Get-OSDCloudWorkspace -ErrorAction Stop
 $MountMyWindowsImage = Mount-MyWindowsImage -ImagePath "$WorkspacePath\Media\Sources\boot.wim"
 $MountPath = $MountMyWindowsImage.Path
