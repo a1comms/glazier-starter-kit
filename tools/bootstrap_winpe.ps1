@@ -1,6 +1,7 @@
 Param(
     [string]$config_server = "",
     [string]$storage_upload_path = ""
+    [string]$storage_boot_upload_path = ""
 )
 
 # Disable IE Advanced Security, as it breaks OSDCloud calls:
@@ -197,6 +198,17 @@ $MountMyWindowsImage | Dismount-MyWindowsImage -Save
 
 Write-Host "Creating ISO"
 New-OSDCloudISO
+
+if ($storage_boot_upload_path -ne "") {
+    Write-Host "Writing WIM to Cloud Storage at $storage_boot_upload_path/sources/boot.wim"
+    gsutil -m cp "$WorkspacePath\Media\Sources\boot.wim" "$storage_boot_upload_path/sources/boot.wim"
+
+    Write-Host "Writing BCD to Cloud Storage at $storage_boot_upload_path/Boot/BCD"
+    gsutil -m cp "$WorkspacePath\Media\Boot\BCD" "$storage_boot_upload_path/Boot/BCD"
+
+    Write-Host "Writing WIM to Cloud Storage at $storage_boot_upload_path/Boot/boot.sdi"
+    gsutil -m cp "$WorkspacePath\Media\Boot\boot.sdi" "$storage_boot_upload_path/Boot/boot.sdi"
+}
 
 if ($storage_upload_path -ne "") {
     Write-Host "Writing ISO to Cloud Storage at $storage_upload_path.iso"
