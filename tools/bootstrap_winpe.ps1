@@ -1,6 +1,6 @@
 Param(
     [string]$config_server = "",
-    [string]$storage_upload_path = ""
+    [string]$storage_upload_path = "",
     [string]$storage_boot_upload_path = ""
 )
 
