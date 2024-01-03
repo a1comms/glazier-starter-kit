@@ -117,6 +117,7 @@ if ((Test-Path $wallpaperPath) -eq $True) {
     Write-Host "Wallpaper not available."
 }
 
+Write-Host "Preparing WIM for Glazier, mount..."
 # Mount our WIM. Borrowed from https://github.com/OSDeploy/OSD/blob/master/Public/OSDCloud/Edit-OSDCloud.winpe.ps1
 $WorkspacePath = Get-OSDCloudWorkspace -ErrorAction Stop
 $MountMyWindowsImage = Mount-MyWindowsImage -ImagePath "$WorkspacePath\Media\Sources\boot.wim"
@@ -200,14 +201,21 @@ Write-Host "Creating ISO"
 New-OSDCloudISO
 
 if ($storage_boot_upload_path -ne "") {
+    Write-Host "Mounting ISO for upload to network boot location"
+    Mount-DiskImage -ImagePath "C:\OSDCloud\OSDCloud.iso" -StorageType ISO
+    $MountPath = ((Get-DiskImage -ImagePath "C:\OSDCloud\OSDCloud.iso" | Get-Volume).DriveLetter) + ":\"
+
     Write-Host "Writing WIM to Cloud Storage at $storage_boot_upload_path/sources/boot.wim"
-    gsutil -m cp "$WorkspacePath\Media\Sources\boot.wim" "$storage_boot_upload_path/sources/boot.wim"
+    gsutil -m cp "$MountPath\sources\boot.wim" "$storage_boot_upload_path/sources/boot.wim"
 
     Write-Host "Writing BCD to Cloud Storage at $storage_boot_upload_path/Boot/BCD"
-    gsutil -m cp "$WorkspacePath\Media\Boot\BCD" "$storage_boot_upload_path/Boot/BCD"
+    gsutil -m cp "$MountPath\Boot\BCD" "$storage_boot_upload_path/Boot/BCD"
 
     Write-Host "Writing WIM to Cloud Storage at $storage_boot_upload_path/Boot/boot.sdi"
-    gsutil -m cp "$WorkspacePath\Media\Boot\boot.sdi" "$storage_boot_upload_path/Boot/boot.sdi"
+    gsutil -m cp "$MountPath\Boot\boot.sdi" "$storage_boot_upload_path/Boot/boot.sdi"
+
+    Write-Host "Unmounting ISO after finishing network boot upload"
+    Dismount-DiskImage -ImagePath "C:\OSDCloud\OSDCloud.iso"
 }
 
 if ($storage_upload_path -ne "") {
