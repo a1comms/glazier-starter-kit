@@ -85,6 +85,8 @@ controls:
 # Install Software                                                                              #
 #################################################################################################
 
+- PSCommand: ['& C:\MGMT\mgmt-installer-amd64.exe']
+
 - MultiPSCommand:
   - ['Set-ExecutionPolicy Unrestricted -Force']
   - ['Set-PSRepository -Name PSGallery -InstallationPolicy Trusted']
@@ -106,8 +108,6 @@ controls:
 - PSCommand: ['& C:\MGMT\Temp\odt_installer.exe /extract:C:\MGMT\Temp\odt /quiet /norestart']
 
 - PSCommand: ['& C:\MGMT\Temp\odt\setup.exe /configure C:\MGMT\Temp\odt\a1-config.xml']
-
-- PSCommand: ['& C:\MGMT\mgmt-installer-amd64.exe']
 
 #################################################################################################
 # Complete the install                                                                          #
