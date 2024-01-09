@@ -1,6 +1,6 @@
 templates:
   osdcloud:
-    PSCommand: ['Start-OSDCloud -Firmware -SkipAutopilot -SkipODT -ZTI -OSVersion "Windows 11" -OSBuild "22H2" -OSEdition "Pro" -OSLanguage "en-gb" -OSLicense "Retail"']
+    PSCommand: ['Start-OSDCloud -Firmware -SkipAutopilot -SkipODT -ZTI -OSVersion "Windows 11" -OSBuild "23H2" -OSEdition "Pro" -OSLanguage "en-gb" -OSLicense "Retail"']
 
 controls:
 - SetTimer: ['winpe_start']
@@ -17,6 +17,10 @@ controls:
 #################################################################################################
 
 - PSCommand: ['& X:\Windows\System32\bcdboot.exe C:\Windows /c /v']
+
+# Install the December 2023 cumulative update for the AlwaysOn VPN fix
+- UpdateMSU:
+  - ['https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/e082275c-9281-429a-be97-ac6fef637e92/public/windows11.0-kb5033375-x64_516f4fb2bb560cddf08e9d744de8029f802dec21.msu', 'C:\glazier_cache\kb5033375.msu', '2b786924068c68797b12e5079942c028fa815a0dc5241f8fcf4e1920e9b9a80b']
 
 #################################################################################################
 # Copy files from WinPE to the host for later use                                               #
