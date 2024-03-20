@@ -26,13 +26,6 @@ controls:
 - PSCommand: ['& X:\Windows\System32\bcdboot.exe C:\Windows /c /v']
 
 #################################################################################################
-# Pre-install the December 2023 cumulative update (kb5033375)                                   #
-#################################################################################################
-
-- UpdateMSU:
-  - ['https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/e082275c-9281-429a-be97-ac6fef637e92/public/windows11.0-kb5033375-x64_516f4fb2bb560cddf08e9d744de8029f802dec21.msu', 'C:\glazier_cache\kb5033375.msu', '2b786924068c68797b12e5079942c028fa815a0dc5241f8fcf4e1920e9b9a80b']
-
-#################################################################################################
 # Handle the initial unattend configuration                                                     #
 #################################################################################################
 
@@ -46,6 +39,17 @@ controls:
   ['C:\Windows\System32\reg.exe unload HKLM\TempSYSTEM'],
 ]
 
+# Add Glazier to the default user profile,
+# to work around it not loading properly after booting into autologon.
+- MultiPSCommand: [
+  ['& C:\Windows\System32\reg.exe load HKLM\TempDefaultUser C:\Users\Default\NTUSER.DAT'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v Shell /t REG_SZ /d "powershell.exe -NoProfile -WindowStyle Maximized -NoExit -NoLogo -ExecutionPolicy Bypass -Command & C:\windows\system32\autobuild.ps1" /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoLogoff /t REG_DWORD /d 1 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableChangePassword /t REG_DWORD /d 1 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableLockWorkstation /t REG_DWORD /d 1 /f'],
+  ['& C:\Windows\System32\reg.exe unload HKLM\TempDefaultUser'],
+]
+
 #################################################################################################
 # Copy files from WinPE to the host for later use                                               #
 #################################################################################################
@@ -57,6 +61,13 @@ controls:
 - CopyDir: ['X:\glazier-resources', 'C:\glazier-resources', true]
 - pull:
   - ['autobuild.ps1', 'C:\windows\system32\autobuild.ps1']
+
+#################################################################################################
+# Pre-install the January 2024 cumulative update (kb5033375)                                   #
+#################################################################################################
+
+- UpdateMSU:
+  - ['https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/a9f5de65-91c3-47e7-b987-0ba0468699b8/public/windows11.0-kb5034123-x64_d82c9af459245e90b5bf897f15a72cf810819f31.msu', 'C:\glazier_cache\kb5034123.msu', '349f673b611383d5e2a300d81fb7ad3ceba7226c346993219fecf76c93fc9d67']
 
 - BuildInfoDump: []
 
@@ -74,12 +85,16 @@ controls:
 
 - BuildInfoSave: []
 
-# Launch Glazier with every subsequent reboot
-- MultiRegAdd: [
-  ['HKCU', 'Software\Microsoft\Windows NT\CurrentVersion\Winlogon', 'Shell', 'powershell.exe -NoProfile -WindowStyle Maximized -NoExit -NoLogo -ExecutionPolicy Bypass -Command & C:\windows\system32\autobuild.ps1', 'REG_SZ'],
-  ['HKCU', 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer', 'NoLogoff', 1, 'REG_DWORD'],
-  ['HKCU', 'Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableChangePassword', 1, 'REG_DWORD'],
-  ['HKCU', 'Software\Microsoft\Windows\CurrentVersion\Policies\System', 'DisableLockWorkstation', 1, 'REG_DWORD'],
+- Sleep: [30, 'Waiting for Windows Update reboot if required...']
+
+# Remove Glazier from the default user profile.
+- MultiPSCommand: [
+  ['& C:\Windows\System32\reg.exe load HKLM\TempDefaultUser C:\Users\Default\NTUSER.DAT'],
+  ['& C:\Windows\System32\reg.exe delete "HKLM\TempDefaultUser\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v Shell /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoLogoff /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableChangePassword /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableLockWorkstation /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe unload HKLM\TempDefaultUser'],
 ]
 
 #################################################################################################
