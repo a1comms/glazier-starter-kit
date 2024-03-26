@@ -134,4 +134,19 @@ controls:
     ['HKLM', 'Software\Microsoft\Windows NT\CurrentVersion\Winlogon', 'AutoAdminLogon', '0', 'REG_SZ']
   ]
 
+# Remove Glazier from the Administrator user profile.
+- MultiPSCommand: [
+  ['& C:\Windows\System32\reg.exe load HKLM\TempDefaultUser C:\Users\Default\NTUSER.DAT'],
+  ['& C:\Windows\System32\reg.exe delete "HKLM\TempDefaultUser\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v Shell /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoLogoff /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableChangePassword /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableLockWorkstation /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe unload HKLM\TempDefaultUser'],
+  ['& C:\Windows\System32\reg.exe delete "HKCU\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v Shell /f'],
+  ['& C:\Windows\System32\reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoLogoff /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableChangePassword /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableLockWorkstation /t REG_DWORD /d 0 /f'],
+]
+
+
 - Reboot: [10, 'Rebooting to finish host configuration']

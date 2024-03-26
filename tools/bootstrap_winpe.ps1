@@ -51,11 +51,11 @@ if (!(isURIWeb($config_server))) {
 }
 
 # $pyVersion is the Python version that will be downloaded
-$pyVersion = "3.10.4"
+$pyVersion = "3.12.2"
 # $pythonSavePath is place where the Python installer will be downloaded on disk
 $pythonSavePath = "~\Downloads\python-$pyVersion-amd64.exe"
 # $pythonInstallHash is the hash used to verify the Python installer download
-$pythonInstallHash = "53fea6cfcce86fb87253364990f22109"
+$pythonInstallHash = "44abfae489d87cc005d50a9267b5d58d"
 # $pyEXEUrl is the url where the Python installer will be obtained
 $pyEXEUrl = "https://www.python.org/ftp/python/$pyVersion/python-$pyVersion-amd64.exe"
 
@@ -164,6 +164,12 @@ robocopy "$scriptPath\" "$MountPath\Windows\System32\" autobuild.ps1 /PURGE
 Write-Host "Copying shutdown.exe to WIM"
 robocopy "C:\Windows\system32\" "$MountPath\Windows\System32\" shutdown.exe /PURGE
 
+Write-Host "Copying pwrshsip.dll to WIM"
+robocopy "C:\Windows\System32\WindowsPowerShell\v1.0\" "$MountPath\Windows\System32\WindowsPowerShell\v1.0\" pwrshsip.dll /PURGE
+
+Write-Host "Copying pwrshsip.reg to WIM"
+robocopy "$scriptPath\" "$MountPath\Windows\System32\WindowsPowerShell\v1.0\" pwrshsip.reg /PURGE
+
 Write-Host "Downloading https://curl.se/ca/cacert.pem to WIM"
 curl https://curl.se/ca/cacert.pem -o "$MountPath\glazier-resources\ca-certs.crt"
 
@@ -177,12 +183,16 @@ ECHO Glazier WinPE with OSDCloud {0}
 ECHO Initialize WinPE
 wpeinit
 cd \
+ECHO Apply PowerShell Registry Fixes....
+X:\Windows\System32\reg.exe import "X:\Windows\System32\WindowsPowerShell\v1.0\pwrshsip.reg" /reg:64
 ECHO Initialize Hardware
 start /wait PowerShell -Nol -W Mi -C Start-Sleep -Seconds 10
 ECHO Initialize Network Connection (Minimized)
 start /wait PowerShell -Nol -W Mi -C Start-Sleep -Seconds 10
 ECHO Updating OSD PowerShell Module (Minimized)
 start /wait PowerShell -NoL -W Mi -C "& {{if (Test-WebConnection) {{Install-Module OSD -Force -Verbose}}}}"
+ECHO Updating MSCatalog PowerShell Module (Minimized)
+start /wait PowerShell -NoL -W Mi -C "& {{if (Test-WebConnection) {{Install-Module MSCatalog -Force -Verbose}}}}"
 ECHO Initialize PowerShell (Minimized)
 start PowerShell -Nol -W Mi
 @ECHO ON

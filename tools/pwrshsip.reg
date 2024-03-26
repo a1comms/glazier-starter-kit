@@ -1,0 +1,30 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\OID\EncodingType 0\CryptSIPDllCreateIndirectData]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\OID\EncodingType 0\CryptSIPDllCreateIndirectData\{603BCC1F-4B59-4E08-B724-D2C6297EF351}]
+"Dll"="X:\\Windows\\System32\\WindowsPowerShell\\v1.0\\pwrshsip.dll"
+"FuncName"="PsCreateHash"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\OID\EncodingType 0\CryptSIPDllGetSignedDataMsg\{603BCC1F-4B59-4E08-B724-D2C6297EF351}]
+"Dll"="X:\\Windows\\System32\\WindowsPowerShell\\v1.0\\pwrshsip.dll"
+"FuncName"="PsGetSignature"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\OID\EncodingType 0\CryptSIPDllPutSignedDataMsg\{603BCC1F-4B59-4E08-B724-D2C6297EF351}]
+"Dll"="X:\\Windows\\System32\\WindowsPowerShell\\v1.0\\pwrshsip.dll"
+"FuncName"="PsPutSignature"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\OID\EncodingType 0\CryptSIPDllRemoveSignedDataMsg\{603BCC1F-4B59-4E08-B724-D2C6297EF351}]
+"Dll"="X:\\Windows\\System32\\WindowsPowerShell\\v1.0\\pwrshsip.dll"
+"FuncName"="PsDelSignature"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\OID\EncodingType 0\CryptSIPDllVerifyIndirectData\{603BCC1F-4B59-4E08-B724-D2C6297EF351}]
+"Dll"="X:\\Windows\\System32\\WindowsPowerShell\\v1.0\\pwrshsip.dll"
+"FuncName"="PsVerifyHash"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\OID\EncodingType 0\CryptSIPDllIsMyFileType2]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography\OID\EncodingType 0\CryptSIPDllIsMyFileType2\{603BCC1F-4B59-4E08-B724-D2C6297EF351}]
+"Dll"="X:\\Windows\\System32\\WindowsPowerShell\\v1.0\\pwrshsip.dll"
+"FuncName"="PsIsMyFileType"
+
