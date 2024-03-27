@@ -8,3 +8,5 @@ unattend.xml
 /glazier-repo/sync.sh
 AutopilotConfigurationFile.json
 /glazier
+/glazier-repo/yappl/Boot
+/glazier-repo/stable/config/VPN

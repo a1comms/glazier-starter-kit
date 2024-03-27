@@ -19,11 +19,11 @@ controls:
 - PSCommand: ['& X:\Windows\System32\bcdboot.exe C:\Windows /c /v']
 
 #################################################################################################
-# Pre-install the January 2024 cumulative update (kb5033375)                                   #
+# Pre-install the March 2024 cumulative update (kb5035942)                                      #
 #################################################################################################
 
 - UpdateMSU:
-  - ['https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/a9f5de65-91c3-47e7-b987-0ba0468699b8/public/windows11.0-kb5034123-x64_d82c9af459245e90b5bf897f15a72cf810819f31.msu', 'C:\glazier_cache\kb5034123.msu', '349f673b611383d5e2a300d81fb7ad3ceba7226c346993219fecf76c93fc9d67']
+  - ['https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/396ddabf-b27a-451e-a898-31d0427a36f7/public/windows11.0-kb5035942-x64_3f37174fadabd9d29ffe92a92b3422557586f645.msu', 'C:\glazier_cache\kb5035942.msu', '5dc9c13a8ad0e940ce689e39018f5eec81fce5301b8c12c5c7198e85f3cbbb6a']
 
 #################################################################################################
 # Prepare MGMT & unattend config                                                                #
@@ -57,6 +57,7 @@ controls:
   - ['MGMT/mgmt-installer-amd64.exe', 'C:\MGMT\mgmt-installer-amd64.exe']
   - ['Office365/officedeploymenttool_15128-20224.exe', 'C:\MGMT\Temp\odt_installer.exe']
   - ['Office365/config.xml', 'C:\MGMT\Temp\odt\a1-config.xml']
+
 
 #################################################################################################
 # Copy files from WinPE to the host for later use                                               #
@@ -133,20 +134,5 @@ controls:
 - MultiRegAdd: [
     ['HKLM', 'Software\Microsoft\Windows NT\CurrentVersion\Winlogon', 'AutoAdminLogon', '0', 'REG_SZ']
   ]
-
-# Remove Glazier from the Administrator user profile.
-- MultiPSCommand: [
-  ['& C:\Windows\System32\reg.exe load HKLM\TempDefaultUser C:\Users\Default\NTUSER.DAT'],
-  ['& C:\Windows\System32\reg.exe delete "HKLM\TempDefaultUser\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v Shell /f'],
-  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoLogoff /t REG_DWORD /d 0 /f'],
-  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableChangePassword /t REG_DWORD /d 0 /f'],
-  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableLockWorkstation /t REG_DWORD /d 0 /f'],
-  ['& C:\Windows\System32\reg.exe unload HKLM\TempDefaultUser'],
-  ['& C:\Windows\System32\reg.exe delete "HKCU\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v Shell /f'],
-  ['& C:\Windows\System32\reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoLogoff /t REG_DWORD /d 0 /f'],
-  ['& C:\Windows\System32\reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableChangePassword /t REG_DWORD /d 0 /f'],
-  ['& C:\Windows\System32\reg.exe add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableLockWorkstation /t REG_DWORD /d 0 /f'],
-]
-
 
 - Reboot: [10, 'Rebooting to finish host configuration']

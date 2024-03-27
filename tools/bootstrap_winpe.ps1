@@ -105,7 +105,7 @@ while ((Get-FileHash ($pythonSavePath) -Algorithm MD5).Hash -ne $pythonInstallHa
 # Install OSDCloud driver packs...
 Write-Host "Installing OSDCloud driver packs..."
 Write-Host "Running 'Edit-OSDCloudWinPE -CloudDriver Dell,IntelNet,USB'"
-Edit-OSDCloudWinPE -CloudDriver Dell,IntelNet,USB
+Edit-OSDCloudWinPE -CloudDriver Dell,IntelNet,USB,LenovoDock
 
 # Set the Wallpaper in WinPE
 $wallpaperPath = "$scriptPath\wallpaper.jpg"
