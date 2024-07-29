@@ -20,7 +20,7 @@ controls:
 
 # Install the December 2023 cumulative update for the AlwaysOn VPN fix
 - UpdateMSU:
-  - ['https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/e082275c-9281-429a-be97-ac6fef637e92/public/windows11.0-kb5033375-x64_516f4fb2bb560cddf08e9d744de8029f802dec21.msu', 'C:\glazier_cache\kb5033375.msu', '2b786924068c68797b12e5079942c028fa815a0dc5241f8fcf4e1920e9b9a80b']
+  - ['https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/a2fe5398-6f24-46ee-a533-372dc30bfd82/public/windows11.0-kb5039212-x64_2b67855a5e73c7a873e6bdca512c8c106b429196.msu', 'C:\glazier_cache\kb5039212.msu', 'd46934604e355ea9ac61fc1130f8d07ce9b98590ea26847f8af1e14b81182f37']
 
 #################################################################################################
 # Copy files from WinPE to the host for later use                                               #

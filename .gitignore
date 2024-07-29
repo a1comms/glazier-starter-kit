@@ -4,6 +4,7 @@ tools/autobuild.json
 /glazier-repo/Boot
 /glazier-repo/*/config/*/*.exe
 /glazier-repo/*/config/*/*.msu
+/glazier-repo/*/config/*/*.msi
 unattend.xml
 /glazier-repo/sync.sh
 AutopilotConfigurationFile.json

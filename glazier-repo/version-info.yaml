@@ -1,5 +1,6 @@
 versions:
   windows-stable: 'stable'
+  windows-stable-gcpw: 'stable-gcpw'
   windows-stable-enterprise: 'stable-enterprise'
   windows-stable-yappl: 'yappl'
   windows-blank: 'blank'

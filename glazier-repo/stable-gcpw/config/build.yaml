@@ -1,0 +1,147 @@
+templates:
+  osdcloud:
+    PSCommand: ['Start-OSDCloud -Firmware -SkipAutopilot -SkipODT -ZTI -OSVersion "Windows 11" -OSBuild "23H2" -OSEdition "Pro" -OSLanguage "en-gb" -OSLicense "Retail"']
+
+controls:
+- SetTimer: ['winpe_start']
+
+#################################################################################################
+# Install Windows                                                                               #
+#################################################################################################
+
+- template:
+  - 'osdcloud'
+
+#################################################################################################
+# Install bootloader                                                                            #
+#################################################################################################
+
+- PSCommand: ['& X:\Windows\System32\bcdboot.exe C:\Windows /c /v']
+
+#################################################################################################
+# Pre-install the July 2024 cumulative update (KB5040442)                                      #
+#################################################################################################
+
+- UpdateMSU:
+  - ['https://catalog.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/e473615b-077f-40b2-96c2-fa6d3da5c5c7/public/windows11.0-kb5040442-x64_c1ba0e4607fd0ee46254a625c55438ffb70edcd0.msu', 'C:\glazier_cache\KB5040442.msu', '2d014b2d188cccb0fceeebc5cddc3c7d38c8c1794a22ee4c63cee1e9a7f52fc8']
+
+#################################################################################################
+# Prepare MGMT & unattend config                                                                #
+#################################################################################################
+
+- pull:
+  - ['unattend.xml', 'C:\Windows\Panther\Invoke-OSDSpecialize.xml']
+
+- Execute: [
+  ['C:\Windows\System32\reg.exe load HKLM\TempSYSTEM C:\Windows\System32\Config\SYSTEM'],
+  ['C:\Windows\System32\reg.exe add HKLM\TempSYSTEM\Setup /v UnattendFile /d C:\Windows\Panther\Invoke-OSDSpecialize.xml /f'],
+  ['C:\Windows\System32\reg.exe unload HKLM\TempSYSTEM'],
+]
+
+# Add Glazier to the default user profile,
+# to work around it not loading properly after booting into autologon.
+- MultiPSCommand: [
+  ['& C:\Windows\System32\reg.exe load HKLM\TempDefaultUser C:\Users\Default\NTUSER.DAT'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v Shell /t REG_SZ /d "powershell.exe -NoProfile -WindowStyle Maximized -NoExit -NoLogo -ExecutionPolicy Bypass -Command & C:\windows\system32\autobuild.ps1" /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoLogoff /t REG_DWORD /d 1 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableChangePassword /t REG_DWORD /d 1 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableLockWorkstation /t REG_DWORD /d 1 /f'],
+  ['& C:\Windows\System32\reg.exe unload HKLM\TempDefaultUser'],
+]
+
+- MkDir: ['C:\MGMT']
+- MkDir: ['C:\MGMT\Temp']
+- MkDir: ['C:\MGMT\Temp\odt']
+
+- pull:
+  - ['MGMT/mgmt-installer-amd64.exe', 'C:\MGMT\mgmt-installer-amd64.exe']
+  - ['Office365/officedeploymenttool_15128-20224.exe', 'C:\MGMT\Temp\odt_installer.exe']
+  - ['Office365/config.xml', 'C:\MGMT\Temp\odt\a1-config.xml']
+  - ['Chrome/GoogleChromeStandaloneEnterprise64.msi', 'C:\MGMT\Temp\GoogleChromeStandaloneEnterprise64.msi']
+  - ['Chrome/EndpointVerification_2.0.3.msi', 'C:\MGMT\Temp\EndpointVerification_2.0.3.msi']
+  - ['Chrome/gcpwstandaloneenterprise64.msi', 'C:\MGMT\Temp\gcpwstandaloneenterprise64.msi']
+
+
+#################################################################################################
+# Copy files from WinPE to the host for later use                                               #
+#################################################################################################
+
+- PSCommand: ['mkdir C:\glazier_cache']
+
+- CopyDir: ['X:\Python', 'C:\Python', true]
+- CopyDir: ['X:\glazier', 'C:\glazier', true]
+- CopyDir: ['X:\glazier-resources', 'C:\glazier-resources', true]
+- pull:
+  - ['autobuild.ps1', 'C:\windows\system32\autobuild.ps1']
+
+- BuildInfoDump: []
+
+- SetTimer: ['winpe_stop']
+
+#################################################################################################
+# Exit WinPE                                                                                    #
+#################################################################################################
+- ExitWinPE: []
+
+#################################################################################################
+# Enter Host                                                                                    #
+#################################################################################################
+- SetTimer: ['host_start']
+
+- BuildInfoSave: []
+
+- Sleep: [30, 'Waiting for Windows Update reboot if required...']
+
+# Remove Glazier from the default user profile.
+- MultiPSCommand: [
+  ['& C:\Windows\System32\reg.exe load HKLM\TempDefaultUser C:\Users\Default\NTUSER.DAT'],
+  ['& C:\Windows\System32\reg.exe delete "HKLM\TempDefaultUser\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v Shell /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoLogoff /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableChangePassword /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe add "HKLM\TempDefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableLockWorkstation /t REG_DWORD /d 0 /f'],
+  ['& C:\Windows\System32\reg.exe unload HKLM\TempDefaultUser'],
+]
+
+#################################################################################################
+# Install Software                                                                              #
+#################################################################################################
+
+# - MultiPSCommand:
+#   - ['Set-ExecutionPolicy Unrestricted -Force']
+#   - ['Set-PSRepository -Name PSGallery -InstallationPolicy Trusted']
+#   - ['Install-Module PSWindowsUpdate -Confirm:$false']
+#   - ['Start-Service -name wuauserv']
+
+# - Sleep: [60, 'Waiting for Windows Update to initialise...']
+
+# - MultiPSCommand:
+#   - ['Get-WindowsUpdate -MicrosoftUpdate -Verbose']
+#   - ['Install-WindowsUpdate -AcceptAll -Install -MicrosoftUpdate -AutoReboot -Verbose']
+
+# - Sleep: [15, 'Waiting for Windows Update reboot if required...']
+
+# - MultiPSCommand:
+#   - ['Set-PSRepository -Name PSGallery -InstallationPolicy Untrusted']
+#   - ['Set-ExecutionPolicy Restricted -Force']
+
+# - PSCommand: ['& C:\MGMT\Temp\odt_installer.exe /extract:C:\MGMT\Temp\odt /quiet /norestart']
+
+# - PSCommand: ['& C:\MGMT\Temp\odt\setup.exe /configure C:\MGMT\Temp\odt\a1-config.xml']
+
+# 0 or 1 are successful exit codes, 3010 will trigger a restart.
+- Execute:
+  - ['C:\Windows\System32\msiexec.exe /i C:\MGMT\Temp\GoogleChromeStandaloneEnterprise64.msi /qn /norestart', [0,1], [3010]]
+  - ['C:\Windows\System32\msiexec.exe /i C:\MGMT\Temp\EndpointVerification_2.0.3.msi /qn /norestart', [0,1], [3010]]
+  - ['C:\Windows\System32\msiexec.exe /i C:\MGMT\Temp\gcpwstandaloneenterprise64.msi /qn /norestart', [0,1], [3010]]
+
+- PSCommand: ['& C:\MGMT\mgmt-installer-amd64.exe']
+
+#################################################################################################
+# Complete the install                                                                          #
+#################################################################################################
+
+- MultiRegAdd:
+  - ['HKLM', 'Software\Policies\Google\CloudManagement', 'EnrollmentToken', '528f2f09-79ad-4b08-8ec0-91f6411ae351', 'REG_SZ']
+  - ['HKLM', 'Software\Microsoft\Windows NT\CurrentVersion\Winlogon', 'AutoAdminLogon', '0', 'REG_SZ']
+
+- Reboot: [10, 'Rebooting to finish host configuration']
